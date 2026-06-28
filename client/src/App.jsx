@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
         <main className="flex-grow max-w-7xl mx-auto px-4 py-6 w-full">
           <Routes>
             <Route path="/" element={<div className="text-center mt-10">Welcome to Lost and Found Portal</div>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </main>
         
