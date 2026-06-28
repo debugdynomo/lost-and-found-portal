@@ -80,3 +80,22 @@ exports.getItems = asyncHandler(async (req, res, next) => {
     data: items
   });
 });
+
+// @desc    Get single item
+// @route   GET /api/items/:id
+// @access  Public
+exports.getItem = asyncHandler(async (req, res, next) => {
+  const item = await Item.findById(req.params.id).populate({
+    path: 'postedBy',
+    select: 'name email avatar'
+  });
+
+  if (!item) {
+    return next(new ApiError(`No item found with the id of ${req.params.id}`, 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: item
+  });
+});
