@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error');
 const authRoutes = require('./routes/auth.routes');
 const itemRoutes = require('./routes/item.routes');
+const claimRoutes = require('./routes/claim.routes');
 require('dotenv').config();
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/claims', claimRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lost and Found Portal API' });
