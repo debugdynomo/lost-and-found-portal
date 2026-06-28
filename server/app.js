@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const errorHandler = require('./middleware/error');
 require('dotenv').config();
 
 const app = express();
@@ -22,5 +23,8 @@ app.use(morgan('dev'));
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lost and Found Portal API' });
 });
+
+// Error Middleware (must be after all routes)
+app.use(errorHandler);
 
 module.exports = app;
