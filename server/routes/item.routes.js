@@ -1,9 +1,11 @@
 const express = require('express');
-const { createItem } = require('../controllers/item.controller');
+const { createItem, getItems } = require('../controllers/item.controller');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/', protect, createItem);
+router.route('/')
+  .get(getItems)
+  .post(protect, createItem);
 
 module.exports = router;
