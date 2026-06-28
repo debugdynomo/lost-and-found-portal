@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error');
+const authRoutes = require('./routes/auth.routes');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +21,9 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // Basic route for testing
+// Routes
+app.use('/api/auth', authRoutes);
+
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lost and Found Portal API' });
 });
