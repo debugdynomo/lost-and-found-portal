@@ -7,6 +7,7 @@ const errorHandler = require('./middleware/error');
 const authRoutes = require('./routes/auth.routes');
 const itemRoutes = require('./routes/item.routes');
 const claimRoutes = require('./routes/claim.routes');
+const userRoutes = require('./routes/user.routes');
 require('dotenv').config();
 
 const app = express();
@@ -27,6 +28,7 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/claims', claimRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lost and Found Portal API' });
