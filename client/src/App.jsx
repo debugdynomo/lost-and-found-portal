@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import Home from './pages/Home';
 
 function App() {
   return (
@@ -10,9 +11,9 @@ function App() {
       <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
         <Navbar />
         
-        <main className="flex-grow max-w-7xl mx-auto px-4 py-6 w-full">
+        <main className="flex-grow w-full">
           <Routes>
-            <Route path="/" element={<div className="text-center mt-10">Welcome to Lost and Found Portal</div>} />
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Routes>
