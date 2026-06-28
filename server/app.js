@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error');
 const authRoutes = require('./routes/auth.routes');
+const itemRoutes = require('./routes/item.routes');
 require('dotenv').config();
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 // Basic route for testing
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/items', itemRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Lost and Found Portal API' });
