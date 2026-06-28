@@ -82,3 +82,50 @@ exports.getSentClaims = asyncHandler(async (req, res, next) => {
     data: claims
   });
 });
+
+// @desc    Respond to a claim (approve/reject)
+// @route   PATCH /api/claims/:id/respond
+// @access  Private
+exports.respondToClaim = asyncHandler(async (req, res, next) => {
+  const { status } = req.body;
+
+  if (!['approved', 'rejected'].includes(status)) {
+    return next(new ApiError('Status must be approved or rejected', 400));
+  }
+
+  const claim = await Claim.findById(req.params.id).populate('item');
+
+  if (!claim) {
+    return next(new ApiError(`No claim found with the id of ${req.params.id}`, 404));
+  }
+
+  // Make sure user owns the item being claimed
+  if (claim.item.postedBy.toString() !== req.user.id) {
+    return next(new ApiError('Not authorized to respond to this claim', 403));
+  }
+
+  // Make sure claim is still pending
+  if (claim.status !== 'pending') {
+    return next(new ApiError(`Claim is already ${claim.status}`, 400));
+  }
+
+  claim.status = status;
+  await claim.save();
+
+  // If approved, update item status to claimed and reject other pending claims
+  if (status === 'approved') {
+    claim.item.status = 'claimed';
+    await claim.item.save();
+
+    // Automatically reject other pending claims for this item
+    await Claim.updateMany(
+      { item: claim.item._id, status: 'pending', _id: { $ne: claim._id } },
+      { $set: { status: 'rejected' } }
+    );
+  }
+
+  res.status(200).json({
+    success: true,
+    data: claim
+  });
+});
