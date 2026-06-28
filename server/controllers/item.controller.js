@@ -99,3 +99,67 @@ exports.getItem = asyncHandler(async (req, res, next) => {
     data: item
   });
 });
+
+// @desc    Update item
+// @route   PUT /api/items/:id
+// @access  Private
+exports.updateItem = asyncHandler(async (req, res, next) => {
+  let item = await Item.findById(req.params.id);
+
+  if (!item) {
+    return next(new ApiError(`No item found with the id of ${req.params.id}`, 404));
+  }
+
+  // Make sure user is item owner
+  if (item.postedBy.toString() !== req.user.id) {
+    return next(new ApiError(`User ${req.user.id} is not authorized to update this item`, 403));
+  }
+
+  item = await Item.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    success: true,
+    data: item
+  });
+});
+
+// @desc    Delete item
+// @route   DELETE /api/items/:id
+// @access  Private
+exports.deleteItem = asyncHandler(async (req, res, next) => {
+  const item = await Item.findById(req.params.id);
+
+  if (!item) {
+    return next(new ApiError(`No item found with the id of ${req.params.id}`, 404));
+  }
+
+  // Make sure user is item owner
+  if (item.postedBy.toString() !== req.user.id) {
+    return next(new ApiError(`User ${req.user.id} is not authorized to delete this item`, 403));
+  }
+
+  // Will add Cloudinary image deletion logic here later
+
+  await item.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// @desc    Get current user's items
+// @route   GET /api/items/my-items
+// @access  Private
+exports.getMyItems = asyncHandler(async (req, res, next) => {
+  const items = await Item.find({ postedBy: req.user.id }).sort('-createdAt');
+
+  res.status(200).json({
+    success: true,
+    count: items.length,
+    data: items
+  });
+});
