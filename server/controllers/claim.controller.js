@@ -46,3 +46,39 @@ exports.createClaim = asyncHandler(async (req, res, next) => {
     data: claim
   });
 });
+
+// @desc    Get claims received on user's items
+// @route   GET /api/claims/received
+// @access  Private
+exports.getReceivedClaims = asyncHandler(async (req, res, next) => {
+  // Find all items posted by the user
+  const myItems = await Item.find({ postedBy: req.user.id }).select('_id');
+  const myItemIds = myItems.map(item => item._id);
+
+  // Find claims for those items
+  const claims = await Claim.find({ item: { $in: myItemIds } })
+    .populate('item', 'title images status type')
+    .populate('claimant', 'name email avatar')
+    .sort('-createdAt');
+
+  res.status(200).json({
+    success: true,
+    count: claims.length,
+    data: claims
+  });
+});
+
+// @desc    Get claims sent by the user
+// @route   GET /api/claims/sent
+// @access  Private
+exports.getSentClaims = asyncHandler(async (req, res, next) => {
+  const claims = await Claim.find({ claimant: req.user.id })
+    .populate('item', 'title images status type location')
+    .sort('-createdAt');
+
+  res.status(200).json({
+    success: true,
+    count: claims.length,
+    data: claims
+  });
+});
