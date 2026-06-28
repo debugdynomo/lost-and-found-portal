@@ -1,6 +1,7 @@
 const Item = require('../models/Item');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
+const cloudinary = require('../config/cloudinary');
 
 // @desc    Create new item
 // @route   POST /api/items
@@ -8,6 +9,29 @@ const asyncHandler = require('../utils/asyncHandler');
 exports.createItem = asyncHandler(async (req, res, next) => {
   // Add user to req.body
   req.body.postedBy = req.user.id;
+
+  // Handle images if any
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = [];
+    
+    for (const file of req.files) {
+      // Convert buffer to base64
+      const b64 = Buffer.from(file.buffer).toString("base64");
+      const dataURI = "data:" + file.mimetype + ";base64," + b64;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: "lost-and-found",
+        resource_type: "auto"
+      });
+      
+      uploadedImages.push({
+        url: result.secure_url,
+        publicId: result.public_id
+      });
+    }
+    
+    req.body.images = uploadedImages;
+  }
 
   const item = await Item.create(req.body);
 
@@ -115,6 +139,29 @@ exports.updateItem = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`User ${req.user.id} is not authorized to update this item`, 403));
   }
 
+  // Handle new images if any
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = [];
+    
+    for (const file of req.files) {
+      const b64 = Buffer.from(file.buffer).toString("base64");
+      const dataURI = "data:" + file.mimetype + ";base64," + b64;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: "lost-and-found",
+        resource_type: "auto"
+      });
+      
+      uploadedImages.push({
+        url: result.secure_url,
+        publicId: result.public_id
+      });
+    }
+    
+    // Append new images to existing ones (or replace, depending on logic. Let's append)
+    req.body.images = [...item.images, ...uploadedImages];
+  }
+
   item = await Item.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
@@ -141,7 +188,14 @@ exports.deleteItem = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`User ${req.user.id} is not authorized to delete this item`, 403));
   }
 
-  // Will add Cloudinary image deletion logic here later
+  // Delete images from Cloudinary
+  if (item.images && item.images.length > 0) {
+    for (const image of item.images) {
+      if (image.publicId) {
+        await cloudinary.uploader.destroy(image.publicId);
+      }
+    }
+  }
 
   await item.deleteOne();
 
