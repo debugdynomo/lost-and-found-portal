@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../utils/api';
-import ItemCard from '../../components/items/ItemCard';
+import api from '../utils/api';
+import ItemCard from '../components/items/ItemCard';
 
 const Home = () => {
   const [items, setItems] = useState([]);
