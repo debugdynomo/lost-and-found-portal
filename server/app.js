@@ -8,7 +8,6 @@ const authRoutes = require('./routes/auth.routes');
 const itemRoutes = require('./routes/item.routes');
 const claimRoutes = require('./routes/claim.routes');
 const userRoutes = require('./routes/user.routes');
-require('dotenv').config();
 
 const app = express();
 
