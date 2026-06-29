@@ -1,6 +1,6 @@
-const User = require('../models/User');
-const ApiError = require('../utils/ApiError');
-const asyncHandler = require('../utils/asyncHandler');
+const User = require("../models/User");
+const ApiError = require("../utils/ApiError");
+const asyncHandler = require("../utils/asyncHandler");
 
 // Helper to send token in cookie
 const sendTokenResponse = (user, statusCode, res) => {
@@ -8,26 +8,20 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   const options = {
     expires: new Date(
-      Date.now() + parseInt(process.env.JWT_EXPIRE || 7) * 24 * 60 * 60 * 1000
+      Date.now() + parseInt(process.env.JWT_EXPIRE || 7) * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
-    sameSite: 'strict'
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   };
-
-  if (process.env.NODE_ENV === 'production') {
-    options.secure = true;
-  }
 
   // Remove password from output
   user.password = undefined;
 
-  res
-    .status(statusCode)
-    .cookie('token', token, options)
-    .json({
-      success: true,
-      user
-    });
+  res.status(statusCode).cookie("token", token, options).json({
+    success: true,
+    user,
+  });
 };
 
 // @desc    Register user
@@ -37,20 +31,20 @@ exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return next(new ApiError('Please provide name, email and password', 400));
+    return next(new ApiError("Please provide name, email and password", 400));
   }
 
   // Check if user exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return next(new ApiError('Email already registered', 400));
+    return next(new ApiError("Email already registered", 400));
   }
 
   // Create user
   const user = await User.create({
     name,
     email,
-    password
+    password,
   });
 
   sendTokenResponse(user, 201, res);
@@ -64,19 +58,19 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   // Validate email & password
   if (!email || !password) {
-    return next(new ApiError('Please provide an email and password', 400));
+    return next(new ApiError("Please provide an email and password", 400));
   }
 
   // Check for user
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
-    return next(new ApiError('Invalid credentials', 401));
+    return next(new ApiError("Invalid credentials", 401));
   }
 
   // Check if password matches
   const isMatch = await user.matchPassword(password);
   if (!isMatch) {
-    return next(new ApiError('Invalid credentials', 401));
+    return next(new ApiError("Invalid credentials", 401));
   }
 
   sendTokenResponse(user, 200, res);
@@ -86,14 +80,16 @@ exports.login = asyncHandler(async (req, res, next) => {
 // @route   POST /api/auth/logout
 // @access  Private
 exports.logout = asyncHandler(async (req, res, next) => {
-  res.cookie('token', 'none', {
+  res.cookie("token", "none", {
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(200).json({
     success: true,
-    data: {}
+    data: {},
   });
 });
 
@@ -105,6 +101,6 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    user
+    user,
   });
 });
